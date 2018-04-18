@@ -1,5 +1,21 @@
-language: php
-php:
-  - 5.5
-  - 5.4
-script: phpunit Test.php
+branches:
+  only:
+  - master
+before_install:
+- eval $(ssh-agent -s)
+- chmod 600 ~/.ssh/config
+- openssl aes-256-cbc -k "$SALT" -in .travis/test.pem.enc -d -a -out travis_key
+- cp travis_key ~/.ssh/travis_key
+- chmod 600 ~/.ssh/travis_key
+- ssh-add ~/.ssh/travis_key
+jobs:
+  include:
+    stage: tag
+    if: branch = master
+    script:
+      - TAGNAME=$(TZ=Japan date +"%Y%m%d-%H%M")
+      - sed -i -e 's/https:\/\/github.com\//git@github.com:/g' .git/config
+      - git tag $TAGNAME
+      - git push origin $TAGNAME
+    env:
+      - secure: n5X+tTaP4yo2BYVXpmgorgzM4n78OxxoreC85C1vpsw/s1ZXXMsd4yyHekD39dMuNdlGQtaj49bPYCpo4IzHBA1WrByyG9A/MPk3XvvTQfRltRz/TFkELAvZc8qdQlwuYrHmVVoV0Az254oe/9MvXfxTlVJTB+uNUxybmoA7wi6J3KBufPEpOlEuGmLJMm2pZM6M4zzR0/rfQxrmxfieSpuLaruJdOxyNJjIQjrysvJtr7HAJAPtXR9LLx2Dtm19/9CiSKzA2/JbKVZOoEG3U1XhUyfYLi6kpufhB5VmcDtIdyR0shvPE7lcLjLi64x7E7PXKmEcpR7X9XxNMFOAHkE8RFiow/3h6r7IHcfREp1pzcVsVYt71HxtPwRUsqfjkMre1GhdiIj6SvLOVvR/ksmThVsqFEDBLwwoAf1c2DDxPzFSB4CC9B5FPMs4HbRsec5M+zAceoZkWzP+l/OjkiQmON8lGszJllzWGXJhPpGm1MQ8jqqWJaBE4PrKX595MCCnbitui3eVCJDYJpw3L3lLJ4ArDsMUdw0JuVH2lW/fIUd9lTHRP3k8V/XgmHlLzTJGSVneNSAlYD/0Jxr7KN5B40GKbTH8f/+GkYHaDN4a/AwoqqHwGEoWxYrsI8z1c5nXxfTgVAbDh43ZHG0yIEdfP3atSzln8hx1WHpgmv4=
